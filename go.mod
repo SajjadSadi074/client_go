@@ -1,4 +1,4 @@
-module github.com/SajjadSasdi074/client_go_
+module github.com/SajjadSasdi074/client_go
 
 go 1.24.0
 
