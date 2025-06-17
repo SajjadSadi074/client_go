@@ -19,24 +19,22 @@ import (
 
 func BookServerDeployment() {
 	var kubeconfig *string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	}
+	home := homedir.HomeDir()
+	// Use kubeconfig path (usually ~/.kube/config)
+	kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 	flag.Parse()
-
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 	client, err := dynamic.NewForConfig(config)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
-
-	deploymentRes := schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
-
+	deploymentRes := schema.GroupVersionResource{
+		Group:    "apps",
+		Version:  "v1",
+		Resource: "deployments"}
 	deployment := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "apps/v1",
@@ -57,12 +55,11 @@ func BookServerDeployment() {
 							"app": "bookserver",
 						},
 					},
-
 					"spec": map[string]interface{}{
 						"containers": []map[string]interface{}{
 							{
 								"name":  "bookserver",
-								"image": "souravbiswassanto/bookserver",
+								"image": "SajjadSadi074/bookapi",
 								"ports": []map[string]interface{}{
 									{
 										"name":          "http",
@@ -77,9 +74,8 @@ func BookServerDeployment() {
 			},
 		},
 	}
-
 	// Create Deployment
-	fmt.Println("Creating deployment...")
+	fmt.Println("Creating deployment")
 	result, err := client.Resource(deploymentRes).Namespace(apiv1.NamespaceDefault).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
@@ -87,10 +83,8 @@ func BookServerDeployment() {
 	fmt.Printf("Created deployment %q.\n", result.GetName())
 
 	prompt()
-	fmt.Println("Updating deployment...")
-
+	fmt.Println("Updating deployment")
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-
 		result, getErr := client.Resource(deploymentRes).Namespace(apiv1.NamespaceDefault).Get(context.TODO(), "bookserverclientgo", metav1.GetOptions{})
 		if getErr != nil {
 			panic(fmt.Errorf("failed to get latest version of Deployment: %v", getErr))
@@ -154,13 +148,13 @@ func BookServerDeployment() {
 }
 
 func prompt() {
-	fmt.Printf("-> Press Return key to continue.")
+	fmt.Println("-> Press ENTER to continue")
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		break
 	}
 	if err := scanner.Err(); err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 	fmt.Println()
 }
