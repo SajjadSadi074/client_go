@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-go-deployment
+  labels:
+    app: client-go-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-go
+  template:
+    metadata:
+      name: client-go
+      labels:
+        app: client-go-deployment
+    spec:
+      containers:
+        - name: client-go-deployment
+          image: sadi74/client-go
+          resources: {}
+      restartPolicy: Always
+      
